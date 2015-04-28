@@ -1,6 +1,3 @@
-/**
- * 
- */
 package analyzer;
 
 import java.io.BufferedReader;
@@ -15,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 
 import json.JSONArray;
 import json.JSONException;
@@ -30,7 +26,6 @@ import org.tartarus.snowball.ext.englishStemmer;
 
 import structures.Bigram;
 import structures.Post;
-import structures.Token;
 import structures.Trigram;
 
 public class DocAnalyzer_Part1 {
@@ -198,14 +193,16 @@ public class DocAnalyzer_Part1 {
 			second = token;
 		}
 	}
-	
+
 	public void findProbabilities() {
 		for (String key : tf_bigram.keySet()) {
-			tf_bigram.get(key).setProb((double)tf_bigram.get(key).getTF()/totalBigrams);
+			tf_bigram.get(key).setProb(
+					(double) tf_bigram.get(key).getTF() / totalBigrams);
 			sort_bigram.add(tf_bigram.get(key));
 		}
 		for (String key : tf_trigram.keySet()) {
-			tf_trigram.get(key).setProb((double)tf_trigram.get(key).getTF()/totalTrigrams);
+			tf_trigram.get(key).setProb(
+					(double) tf_trigram.get(key).getTF() / totalTrigrams);
 			sort_trigram.add(tf_trigram.get(key));
 		}
 	}
@@ -231,8 +228,8 @@ public class DocAnalyzer_Part1 {
 				b.setId_num(count);
 
 				if (b.getTF() > 5) {
-					bw.write(count + "," + b.getProb() + "," + b.getFirst() + ","
-							+ b.getSecond());
+					bw.write(count + "," + b.getProb() + "," + b.getFirst()
+							+ "," + b.getSecond());
 					bw.write("\n");
 				}
 				count++;
@@ -241,14 +238,14 @@ public class DocAnalyzer_Part1 {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		// TRIGRAMS
 		Collections.sort(sort_trigram, new Comparator<Trigram>() {
 			public int compare(Trigram t1, Trigram t2) {
 				return t2.getTF() - t1.getTF();
 			}
 		});
-		
+
 		try {
 			File file = new File("data/trigram_vocab.csv");
 			if (!file.exists()) {
@@ -262,8 +259,8 @@ public class DocAnalyzer_Part1 {
 				t.setId_num(count);
 
 				if (t.getTF() > 5) {
-					bw.write(count + "," + t.getProb() + "," + t.getFirst() + ","
-							+ t.getSecond() + "," + t.getThird());
+					bw.write(count + "," + t.getProb() + "," + t.getFirst()
+							+ "," + t.getSecond() + "," + t.getThird());
 					bw.write("\n");
 				}
 				count++;
@@ -276,11 +273,12 @@ public class DocAnalyzer_Part1 {
 
 	public static void main(String[] args) {
 		DocAnalyzer_Part1 analyzer = new DocAnalyzer_Part1();
-		
-		analyzer.loadDirectory("./data/1", ".json");
-		analyzer.findProbabilities();
-		analyzer.WriteToFile();
+
+		/*
+		 * analyzer.loadDirectory("./data/1", ".json");
+		 * analyzer.findProbabilities(); analyzer.WriteToFile();
+		 */
 
 	}
-	
+
 }

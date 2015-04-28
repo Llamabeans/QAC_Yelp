@@ -12,7 +12,7 @@ import java.util.HashMap;
 public class LanguageModel {
 
 	int m_N; // N-gram
-	HashMap<String, Token> m_model; // sparse structure for storing the maximum likelihood estimation of LM with the seen N-grams
+	HashMap<String, Unigram> m_model; // sparse structure for storing the maximum likelihood estimation of LM with the seen N-grams
 	LanguageModel m_reference; // pointer to the reference language model for smoothing purpose
 	
 	double m_lambda; // parameter for linear interpolation smoothing
@@ -20,7 +20,7 @@ public class LanguageModel {
 	
 	public LanguageModel(int N) {
 		m_N = N;
-		m_model = new HashMap<String, Token>();
+		m_model = new HashMap<String, Unigram>();
 	}
 	
 	public double calcMLProb(String token) {

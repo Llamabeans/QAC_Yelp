@@ -3,49 +3,16 @@
  */
 package structures;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import json.JSONException;
 import json.JSONObject;
 
-/**
- * @author hongning
- * @version 0.1
- * @category data structure data structure for a Yelp review document You can
- *           create some necessary data structure here to store the processed
- *           text content, e.g., bag-of-word representation
- */
 public class Post {
 
-	public HashMap<String, Token> term_frequency;
+	public HashMap<String, Unigram> term_frequency;
 	public HashSet<String> terms;
-	public HashMap<String, Token> vector_TFIDF;
-	
-	public ArrayList<Double> random_projection;
-
-	// Cosine similarity score
-	double m_score;
-
-	public void setScore(double score) {
-		m_score = score;
-	}
-
-	public double getScore() {
-		return m_score;
-	}
-
-	// Magnitude of vector space model
-	double v_space_mag;
-
-	public void setMag(double mag) {
-		v_space_mag = mag;
-	}
-
-	public double getMag() {
-		return v_space_mag;
-	}
 
 	// unique review ID from Yelp
 	String m_ID;
@@ -142,62 +109,11 @@ public class Post {
 		this.bayes_classifier = bayes_classifier;
 	}
 
-	double precision;
-
-	public double getPrecision() {
-		return precision;
-	}
-
-	public void setPrecision(double precision) {
-		this.precision = precision;
-	}
-
-	public double getRecall() {
-		return recall;
-	}
-
-	public void setRecall(double recall) {
-		this.recall = recall;
-	}
-
-	double recall;
-	
-	public double getFP() {
-		return FP;
-	}
-
-	public void setFP(double fP) {
-		FP = fP;
-	}
-
-	public double getTP() {
-		return TP;
-	}
-
-	public void setTP(double tP) {
-		TP = tP;
-	}
-
-	public double getFN() {
-		return FN;
-	}
-
-	public void setFN(double fN) {
-		FN = fN;
-	}
-
-	double FP;
-	double TP;
-	double FN;
 
 	public Post(JSONObject json) {
-		m_score = 0;
-		v_space_mag = 0;
-		term_frequency = new HashMap<String, Token>();
+		term_frequency = new HashMap<String, Unigram>();
 		terms = new HashSet<String>();
-		vector_TFIDF = new HashMap<String, Token>();
-		random_projection = new ArrayList<Double>();
-		positive = false;
+		positive = true;
 		try {
 			m_ID = json.getString("ReviewID");
 			setAuthor(json.getString("Author"));
