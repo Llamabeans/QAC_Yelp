@@ -35,7 +35,7 @@ import org.apache.lucene.store.RAMDirectory;
 import structures.Post;
 
 
-public class LuceneTest {
+public class DataExtractor {
 	
 	public JSONObject loadJson(String filename) {
 		try {
@@ -115,14 +115,16 @@ public class LuceneTest {
 	public static void main(String[] args)
 	{
 		Analyzer analyzer = new StandardAnalyzer();
-		LuceneTest dumb = new LuceneTest();
+		DataExtractor dumb = new DataExtractor();
 		
 		Analyzer1 analyzer2 = new Analyzer1();
-		String str = dumb.extractPost(0, dumb.loadJson("./data/test.json")).getContent();
+		Analyzer_Unigram token = new Analyzer_Unigram();
+		
+		String str = "disgusting";
 		
 		
 		try {
-			TokenStream ts = analyzer2.tokenStream("content", new StringReader(str));
+			TokenStream ts = token.tokenStream("content", new StringReader(str));
 			CharTermAttribute charTermAttribute = ts.addAttribute(CharTermAttribute.class);
 			ts.reset();
 			while (ts.incrementToken()) {
@@ -131,12 +133,25 @@ public class LuceneTest {
 			}
 			ts.end();
 			ts.close();
+			
+			ts = token.tokenStream("content", new StringReader(str));
+			ts.reset();
+			while (ts.incrementToken()) {
+			    String term = charTermAttribute.toString();
+			    System.out.println(term);
+			}
+			
+			
+			ts.end();
+			ts.close();
+			
 		} catch (Exception e){
 			
 		}
 		
-		analyzer2.close();
+		token.close();
 		
+		// code referenced
 		try
 		{
 			//	Specify the analyzer for tokenizing text.

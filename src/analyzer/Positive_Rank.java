@@ -7,18 +7,21 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
 import json.JSONArray;
 import json.JSONException;
 import json.JSONObject;
+import lucene.Analyzer_Unigram;
 import structures.Post;
 import structures.Unigram;
 
@@ -121,47 +124,58 @@ public class Positive_Rank extends Analyzer {
 
 	// Extract DFs and TFs of unigrams in reviews
 	public void findDFTF(Post review) {
-
-		HashSet<String> unique = new HashSet<String>();
-		// Unigram DF
-		for (String token : tokenizer.tokenize(normalize(review.getContent()))) {
-			token = normalize(token);
-			if (token == "") {
-				continue;
-			}
-			token = snowballStem(token);
-			unique.add(token);
-		}
 		
-		for (String key : unique) {
-			if (unigram_pos.containsKey(key)) {
-				if (review.isPositive()) {
-					unigram_pos.get(key).addDF(1);
-					unigram_pos.get(key).addReview(review.getID());
-				} else {
-					unigram_neg.get(key).addDF(1);
-					unigram_neg.get(key).addReview(review.getID());
+		HashSet<String> unique = new HashSet<String>();
+		Analyzer_Unigram analyzer = new Analyzer_Unigram();
+		String str = review.getContent();
+		try {
+			TokenStream ts = analyzer.tokenStream("content", new StringReader(
+					str));
+			CharTermAttribute charTermAttribute = ts
+					.addAttribute(CharTermAttribute.class);
+			ts.reset();
+			while (ts.incrementToken()) {
+				String token = charTermAttribute.toString();
+				// DF
+				unique.add(token);
+
+				for (String key : unique) {
+					if (unigram_pos.containsKey(key)) {
+						if (review.isPositive()) {
+							unigram_pos.get(key).addDF(1);
+							unigram_pos.get(key).addReview(review.getID());
+						} else {
+							unigram_neg.get(key).addDF(1);
+							unigram_neg.get(key).addReview(review.getID());
+						}
+					}
 				}
 			}
-		}
-		// Unigram TF
-		for (String token : tokenizer
-				.tokenize(normalize(review.getContent()))) {
-			token = normalize(token);
-			if (token == "") {
-				continue;
-			}
-			token = snowballStem(token);
-			if (unigram_pos.containsKey(token)) {
-				if (review.isPositive()) {
-					unigram_pos.get(token).addTF(1);
-					totalPosTerms++;
-				} else {
-					unigram_neg.get(token).addTF(1);
-					totalNegTerms++;
+			ts.end();
+			ts.close();
+
+			// TF
+			ts = analyzer.tokenStream("content", new StringReader(str));
+			ts.reset();
+			while (ts.incrementToken()) {
+				String token = charTermAttribute.toString();
+				if (unigram_pos.containsKey(token)) {
+					if (review.isPositive()) {
+						unigram_pos.get(token).addTF(1);
+						totalPosTerms++;
+					} else {
+						unigram_neg.get(token).addTF(1);
+						totalNegTerms++;
+					}
 				}
 			}
+			ts.end();
+			ts.close();
+
+		} catch (Exception e) {
 		}
+		analyzer.close();
+		
 		m_reviews.add(review);
 	}
 
@@ -228,7 +242,7 @@ public class Positive_Rank extends Analyzer {
 		// Load features
 		analyzer.readFeatures();
 		// Separate TF/DF by pos/neg docs
-		analyzer.loadDirectory("./data/1", ".json");
+		analyzer.loadDirectory("./data/test", ".json");
 		// Generate language model
 		analyzer.smoothedLM();
 		// Determine positivty of features

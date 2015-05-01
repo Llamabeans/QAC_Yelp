@@ -4,6 +4,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -15,6 +16,11 @@ import java.util.Map;
 import json.JSONArray;
 import json.JSONException;
 import json.JSONObject;
+import lucene.Analyzer_Unigram;
+
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+
 import structures.Post;
 import structures.Unigram;
 
@@ -31,15 +37,15 @@ public class Feature_Selection extends Analyzer {
 
 	public Feature_Selection() {
 		super();
-		
+
 		sort_unigram = new ArrayList<Unigram>();
-		
+
 		unigram_stats = new HashMap<String, Unigram>();
 
 		features = new ArrayList<String>();
 		m_reviews = new ArrayList<Post>();
 	}
-	
+
 	// Load files from directory
 	public void loadDirectory(String folder, String suffix) {
 		int count = 0;
@@ -84,41 +90,52 @@ public class Feature_Selection extends Analyzer {
 
 	// Extract DFs and TFs of unigrams in reviews
 	public void findDFTF(Post review) {
-
 		HashMap<String, Unigram> unique = new HashMap<String, Unigram>();
-		// Unigram DF
-		for (String token : tokenizer.tokenize(normalize(review.getContent()))) {
-			token = normalize(token);
-			if (token == "") {
-				continue;
+		Analyzer_Unigram analyzer = new Analyzer_Unigram();
+		String str = review.getContent();
+		try {
+			TokenStream ts = analyzer.tokenStream("content", new StringReader(
+					str));
+			CharTermAttribute charTermAttribute = ts
+					.addAttribute(CharTermAttribute.class);
+			ts.reset();
+			while (ts.incrementToken()) {
+				String token = charTermAttribute.toString();
+				// DF
+				Unigram aToken = new Unigram(token);
+				unique.put(token, aToken);
+
+				for (String key : unique.keySet()) {
+					if (unigram_stats.containsKey(key)) {
+						unigram_stats.get(key).addDF(1);
+					} else {
+						unigram_stats.put(key, unique.get(key));
+						unigram_stats.get(key).addDF(1);
+					}
+				}
 			}
-			token = snowballStem(token);
-			Unigram aToken = new Unigram(token);
-			unique.put(token, aToken);
-		}
-		for (String key : unique.keySet()) {
-			if (unigram_stats.containsKey(key)) {
-				unigram_stats.get(key).addDF(1);
-			} else {
-				unigram_stats.put(key, unique.get(key));
-				unigram_stats.get(key).addDF(1);
+			ts.end();
+			ts.close();
+
+			// TF
+			ts = analyzer.tokenStream("content", new StringReader(str));
+			ts.reset();
+			while (ts.incrementToken()) {
+				String token = charTermAttribute.toString();
+				unigram_stats.get(token).addTF(1);
+				unigram_stats.get(token).addReview(review.getID());
 			}
+			ts.end();
+			ts.close();
+
+		} catch (Exception e) {
 		}
-		// Unigram TF
-		for (String token : tokenizer
-				.tokenize(normalize(review.getContent()))) {
-			token = normalize(token);
-			if (token == "") {
-				continue;
-			}
-			token = snowballStem(token);
-			unigram_stats.get(token).addTF(1);
-		}
-		m_reviews.add(review);
+		analyzer.close();
 	}
 
 	public void filterDF() {
-		for (Iterator<Map.Entry<String, Unigram>> it = unigram_stats.entrySet().iterator();	it.hasNext(); ) {
+		for (Iterator<Map.Entry<String, Unigram>> it = unigram_stats.entrySet()
+				.iterator(); it.hasNext();) {
 			Map.Entry<String, Unigram> entry = it.next();
 			if (entry.getValue().getDF() < 50) {
 				it.remove();
@@ -130,9 +147,7 @@ public class Feature_Selection extends Analyzer {
 		int count = 0;
 		for (Unigram t : unigram_stats.values()) {
 			count++;
-			if (count % 1000 == 0) {
-				System.out.println("Token #" + count);
-			}
+			System.out.println(count);
 
 			// Entropy when token is present
 			double A = 0.0; // Positive and T
@@ -198,13 +213,13 @@ public class Feature_Selection extends Analyzer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}	
-	
+	}
+
 	public static void main(String[] args) {
 		Feature_Selection analyzer = new Feature_Selection();
 
 		// Load TF/DF/positivity of docs
-		analyzer.loadDirectory("./data/1", ".json");
+		analyzer.loadDirectory("./data/test", ".json");
 		// remove < 50 DF
 		analyzer.filterDF();
 		// Run chi squred on unigrams
