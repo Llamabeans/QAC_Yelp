@@ -29,6 +29,10 @@ public class AutoSuggester {
 		}
 
 	}
+	
+	public double getSize() {
+		return dataset.size();
+	}
 
 	public static void main(String args[]) {
 		

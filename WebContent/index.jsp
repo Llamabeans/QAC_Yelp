@@ -17,7 +17,7 @@
 							// Servlet name
 							$form = $(this);
 							$.post($form.attr('action'), $form.serialize(),
-									function(responseText) { // Execute Ajax POST request on URL as set in <form action> with all input values of the form as parameters and execute the following function with Ajax response text...
+									function(responseText) {
 										$('#somediv').text(responseText);
 									});
 							return false;
