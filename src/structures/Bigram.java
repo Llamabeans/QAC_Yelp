@@ -29,6 +29,17 @@ public class Bigram {
 	public void setSecond(String second) {
 		this.second = second;
 	}
+	
+	private String entire;
+	
+
+	public String getEntire() {
+		return entire;
+	}
+
+	public void setEntire(String entire) {
+		this.entire = entire;
+	}
 
 	private int termFreq;
 
@@ -55,11 +66,18 @@ public class Bigram {
 	}
 
 	// Constructor 1
-	public Bigram(String first, String second) {
-		this.first = first;
-		this.second = second;
+	public Bigram(String entire) {
+		this.entire = entire;
+		String[] tokens = entire.split("\\s+");
+		this.first = tokens[0];
+		this.second = tokens[1];
 	}
 
-	public Bigram() {
+	public Bigram(String entire, int TF) {
+		this.entire = entire;
+		String[] tokens = entire.split("\\s+");
+		this.first = tokens[0];
+		this.second = tokens[1];
+		this.termFreq = TF;
 	}
 }

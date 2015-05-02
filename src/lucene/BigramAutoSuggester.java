@@ -7,13 +7,13 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.search.suggest.Lookup.LookupResult;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingSuggester;
 
-import structures.Unigram;
+import structures.Bigram;
 
-public class AutoSuggester {
+public class BigramAutoSuggester {
 
-	private ArrayList<Unigram> dataset;
+	private ArrayList<Bigram> dataset;
 	
-	public AutoSuggester(ArrayList<Unigram> data) {
+	public BigramAutoSuggester(ArrayList<Bigram> data) {
 		dataset = data;
 	}
 
@@ -21,7 +21,7 @@ public class AutoSuggester {
 		AnalyzingSuggester suggester = new AnalyzingSuggester(
 				new StandardAnalyzer());
 		try {
-			suggester.build(new TokenIterator(dataset));
+			suggester.build(new BigramIterator(dataset));
 			List<LookupResult> results = suggester.lookup(s, false, num);
 			return results;
 		} catch (Exception e) {
@@ -36,19 +36,19 @@ public class AutoSuggester {
 
 	public static void main(String args[]) {
 		
-		ArrayList<Unigram> subset = new ArrayList<Unigram>();
-		subset.add(new Unigram("ba", 10));
-		subset.add(new Unigram("ball", 50));
-		subset.add(new Unigram("balloon", 20));
-		subset.add(new Unigram("balls", 30));
+		ArrayList<Bigram> subset = new ArrayList<Bigram>();
+		subset.add(new Bigram("ball room", 10));
+		subset.add(new Bigram("ball course", 50));
+		subset.add(new Bigram("baller effect", 20));
+		subset.add(new Bigram("ball sunk", 30));
 		
 
-		AutoSuggester test = new AutoSuggester(subset);
+		BigramAutoSuggester test = new BigramAutoSuggester(subset);
 		List<LookupResult> results = test.search("ba", 4);
 
 		for (LookupResult lookupResult : results) {
 			System.out.println(lookupResult.key + ":" + lookupResult.value);
 		}
 	}
-
+	
 }

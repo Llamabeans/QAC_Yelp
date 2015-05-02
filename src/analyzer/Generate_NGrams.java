@@ -4,10 +4,10 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -16,19 +16,17 @@ import java.util.HashMap;
 import json.JSONArray;
 import json.JSONException;
 import json.JSONObject;
+import lucene.Analyzer_NGrams;
 import opennlp.tools.tokenize.Tokenizer;
-import opennlp.tools.tokenize.TokenizerME;
-import opennlp.tools.tokenize.TokenizerModel;
-import opennlp.tools.util.InvalidFormatException;
 
-import org.tartarus.snowball.SnowballStemmer;
-import org.tartarus.snowball.ext.englishStemmer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
 import structures.Bigram;
 import structures.Post;
 import structures.Trigram;
 
-public class DocAnalyzer_Part1 {
+public class Generate_NGrams {
 
 	Tokenizer tokenizer;
 
@@ -39,11 +37,9 @@ public class DocAnalyzer_Part1 {
 	HashMap<String, Trigram> tf_trigram;
 	ArrayList<Post> m_reviews;
 
-	int totalBigrams = 0;
-	int totalTrigrams = 0;
 	int totalReviews = 0;
 
-	public DocAnalyzer_Part1() {
+	public Generate_NGrams() {
 		sort_bigram = new ArrayList<Bigram>();
 		sort_trigram = new ArrayList<Trigram>();
 
@@ -51,50 +47,6 @@ public class DocAnalyzer_Part1 {
 		tf_trigram = new HashMap<String, Trigram>();
 
 		m_reviews = new ArrayList<Post>();
-
-		try {
-			tokenizer = new TokenizerME(new TokenizerModel(new FileInputStream(
-					"./data/Model/en-token.bin")));
-		} catch (InvalidFormatException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-
-	// Test to tokenizer
-	public void TokenizerDemon(String text) {
-		for (String token : tokenizer.tokenize(text)) {
-			System.out.println(normalize(token));
-		}
-	}
-
-	// Text Normalization
-	public String normalize(String token) {
-		try {
-			Double.valueOf(token);
-			token = "NUM";
-			return token;
-		} catch (NumberFormatException e) {
-		}
-		token = token.replaceAll("[^a-zA-Z0-9]", " ");
-		token = token.toLowerCase();
-		return token;
-	}
-
-	// Snowball stemmer
-	public String snowballStem(String token) {
-		SnowballStemmer stemmer = new englishStemmer();
-		stemmer.setCurrent(token);
-		if (stemmer.stem())
-			return stemmer.getCurrent();
-		else
-			return token;
 	}
 
 	public JSONObject loadJson(String filename) {
@@ -158,56 +110,37 @@ public class DocAnalyzer_Part1 {
 
 	// Calculate TFs of new bigrams and trigrams
 	public void findTermFrequencies(Post review) {
-		String first = "";
-		String second = "";
-		for (String token : tokenizer.tokenize(normalize(review.getContent()))) {
-			token = normalize(token);
-			if (token == "" || token.equals("eos")) {
-				continue;
-			}
-			token = snowballStem(token);
+		
+		Analyzer_NGrams analyzer = new Analyzer_NGrams();
+		String str = review.getContent();
 
-			// Bigram TF
-			if (first != "") {
-				totalBigrams++;
-				String bigram = first + "-" + token;
-				if (tf_bigram.containsKey(bigram)) {
-					tf_bigram.get(bigram).addTF(1);
+		try {
+			TokenStream ts = analyzer.tokenStream("content", new StringReader(
+					str));
+			CharTermAttribute charTermAttribute = ts
+					.addAttribute(CharTermAttribute.class);
+			ts.reset();
+			while (ts.incrementToken()) {
+				String term = charTermAttribute.toString();
+				if (tf_bigram.containsKey(term)) {
+					tf_bigram.get(term).addTF(1);
 				} else {
-					tf_bigram.put(bigram, new Bigram(first, token));
-				}
-
-				// Trigram TF
-				if (second != "") {
-					totalTrigrams++;
-					String trigram = first + "-" + second + "-" + token;
-					if (tf_trigram.containsKey(trigram)) {
-						tf_trigram.get(trigram).addTF(1);
-					} else {
-						tf_trigram.put(trigram, new Trigram(first, second,
-								token));
-					}
+					tf_bigram.put(term, new Bigram(term));
 				}
 			}
-			first = second;
-			second = token;
-		}
-	}
+			ts.end();
+			ts.close();
 
-	public void findProbabilities() {
-		for (String key : tf_bigram.keySet()) {
-			tf_bigram.get(key).setProb(
-					(double) tf_bigram.get(key).getTF() / totalBigrams);
-			sort_bigram.add(tf_bigram.get(key));
+		} catch (Exception e) {
+
 		}
-		for (String key : tf_trigram.keySet()) {
-			tf_trigram.get(key).setProb(
-					(double) tf_trigram.get(key).getTF() / totalTrigrams);
-			sort_trigram.add(tf_trigram.get(key));
-		}
+		analyzer.close();
 	}
 
 	public void WriteToFile() {
+		for (Bigram b : tf_bigram.values()) {
+			sort_bigram.add(b);
+		}
 		// BIGRAMS
 		Collections.sort(sort_bigram, new Comparator<Bigram>() {
 			public int compare(Bigram t1, Bigram t2) {
@@ -216,23 +149,19 @@ public class DocAnalyzer_Part1 {
 		});
 
 		try {
-			File file = new File("data/bigram_vocab.csv");
+			File file = new File("data/bigram_vocab.txt");
 			if (!file.exists()) {
 				file.createNewFile();
 			}
 			FileWriter fw = new FileWriter(file);
 			BufferedWriter bw = new BufferedWriter(fw);
 
-			int count = 1;
 			for (Bigram b : sort_bigram) {
-				b.setId_num(count);
-
 				if (b.getTF() > 5) {
-					bw.write(count + "," + b.getProb() + "," + b.getFirst()
-							+ "," + b.getSecond());
+					bw.write(b.getTF() + " " + b.getFirst() + " "
+							+ b.getSecond());
 					bw.write("\n");
 				}
-				count++;
 			}
 			bw.close();
 		} catch (IOException e) {
@@ -259,8 +188,8 @@ public class DocAnalyzer_Part1 {
 				t.setId_num(count);
 
 				if (t.getTF() > 5) {
-					bw.write(count + "," + t.getProb() + "," + t.getFirst()
-							+ "," + t.getSecond() + "," + t.getThird());
+					bw.write(count + "," + t.getTF() + "," + t.getFirst() + ","
+							+ t.getSecond() + "," + t.getThird());
 					bw.write("\n");
 				}
 				count++;
@@ -272,12 +201,11 @@ public class DocAnalyzer_Part1 {
 	}
 
 	public static void main(String[] args) {
-		DocAnalyzer_Part1 analyzer = new DocAnalyzer_Part1();
+		Generate_NGrams analyzer = new Generate_NGrams();
 
-		/*
-		 * analyzer.loadDirectory("./data/1", ".json");
-		 * analyzer.findProbabilities(); analyzer.WriteToFile();
-		 */
+		analyzer.loadDirectory("./data/1", ".json");
+		analyzer.WriteToFile();
+		System.out.println(analyzer.tf_bigram.size());
 
 	}
 

@@ -7,7 +7,7 @@ import org.apache.lucene.analysis.core.LowerCaseTokenizer;
 import org.apache.lucene.analysis.en.KStemFilter;
 import org.apache.lucene.analysis.shingle.ShingleFilter;
 
-public class Analyzer1 extends Analyzer {
+public class Analyzer_NGrams extends Analyzer {
 
 	@Override
 	protected TokenStreamComponents createComponents(String arg0) {
