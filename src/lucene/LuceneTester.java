@@ -35,7 +35,7 @@ import org.apache.lucene.store.RAMDirectory;
 import structures.Post;
 
 
-public class DataExtractor {
+public class LuceneTester {
 	
 	public JSONObject loadJson(String filename) {
 		try {
@@ -58,35 +58,6 @@ public class DataExtractor {
 			System.err.format("[Error]Failed to parse json file %s!", filename);
 			e.printStackTrace();
 			return null;
-		}
-	}
-
-	// Load files from directory
-	public void loadDirectory(String folder, String suffix) {
-		int count = 0;
-		File dir = new File(folder);
-		for (File f : dir.listFiles()) {
-			if (f.isFile() && f.getName().endsWith(suffix)) {
-				processReview(loadJson(f.getAbsolutePath()));
-				count++;
-				if (count % 10 == 0) {
-					System.out.println(count);
-				}
-			} else if (f.isDirectory())
-				loadDirectory(f.getAbsolutePath(), suffix);
-		}
-	}
-
-	// Pull a single review from file, place into a Post
-	public void processReview(JSONObject json) {
-		try {
-			JSONArray jarray = json.getJSONArray("Reviews");
-			for (int i = 0; i < jarray.length(); i++) {
-				Post review = new Post(jarray.getJSONObject(i));
-
-			}
-		} catch (JSONException e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -115,7 +86,6 @@ public class DataExtractor {
 	public static void main(String[] args)
 	{
 		Analyzer analyzer = new StandardAnalyzer();
-		DataExtractor dumb = new DataExtractor();
 		
 		Analyzer1 analyzer2 = new Analyzer1();
 		Analyzer_Unigram token = new Analyzer_Unigram();
@@ -140,7 +110,6 @@ public class DataExtractor {
 			    String term = charTermAttribute.toString();
 			    System.out.println(term);
 			}
-			
 			
 			ts.end();
 			ts.close();
