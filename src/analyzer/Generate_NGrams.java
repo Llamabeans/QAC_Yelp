@@ -17,35 +17,24 @@ import json.JSONArray;
 import json.JSONException;
 import json.JSONObject;
 import lucene.Analyzer_NGrams;
-import opennlp.tools.tokenize.Tokenizer;
 
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
-import structures.Bigram;
 import structures.Post;
-import structures.Trigram;
+import structures.Token;
 
 public class Generate_NGrams {
 
-	Tokenizer tokenizer;
-
-	ArrayList<Bigram> sort_bigram;
-	ArrayList<Trigram> sort_trigram;
-
-	HashMap<String, Bigram> tf_bigram;
-	HashMap<String, Trigram> tf_trigram;
+	HashMap<String, Token> tf_tokens;
+	ArrayList<Token> sort_tokens;
 	ArrayList<Post> m_reviews;
 
 	int totalReviews = 0;
 
 	public Generate_NGrams() {
-		sort_bigram = new ArrayList<Bigram>();
-		sort_trigram = new ArrayList<Trigram>();
-
-		tf_bigram = new HashMap<String, Bigram>();
-		tf_trigram = new HashMap<String, Trigram>();
-
+		tf_tokens = new HashMap<String, Token>();
+		sort_tokens = new ArrayList<Token>();
 		m_reviews = new ArrayList<Post>();
 	}
 
@@ -122,10 +111,10 @@ public class Generate_NGrams {
 			ts.reset();
 			while (ts.incrementToken()) {
 				String term = charTermAttribute.toString();
-				if (tf_bigram.containsKey(term)) {
-					tf_bigram.get(term).addTF(1);
+				if (tf_tokens.containsKey(term)) {
+					tf_tokens.get(term).addTF(1);
 				} else {
-					tf_bigram.put(term, new Bigram(term));
+					tf_tokens.put(term, new Token(term, 1));
 				}
 			}
 			ts.end();
@@ -138,61 +127,29 @@ public class Generate_NGrams {
 	}
 
 	public void WriteToFile() {
-		for (Bigram b : tf_bigram.values()) {
-			sort_bigram.add(b);
+		for (Token t : tf_tokens.values()) {
+			sort_tokens.add(t);
 		}
 		// BIGRAMS
-		Collections.sort(sort_bigram, new Comparator<Bigram>() {
-			public int compare(Bigram t1, Bigram t2) {
+		Collections.sort(sort_tokens, new Comparator<Token>() {
+			public int compare(Token t1, Token t2) {
 				return t2.getTF() - t1.getTF();
 			}
 		});
 
 		try {
-			File file = new File("data/bigram_vocab.txt");
+			File file = new File("data/trigram_vocab.txt");
 			if (!file.exists()) {
 				file.createNewFile();
 			}
 			FileWriter fw = new FileWriter(file);
 			BufferedWriter bw = new BufferedWriter(fw);
 
-			for (Bigram b : sort_bigram) {
-				if (b.getTF() > 5) {
-					bw.write(b.getTF() + " " + b.getFirst() + " "
-							+ b.getSecond());
+			for (Token t : sort_tokens) {
+				if (t.getTF() > 50) {
+					bw.write(t.getTF() + " " + t.getContent());
 					bw.write("\n");
 				}
-			}
-			bw.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		// TRIGRAMS
-		Collections.sort(sort_trigram, new Comparator<Trigram>() {
-			public int compare(Trigram t1, Trigram t2) {
-				return t2.getTF() - t1.getTF();
-			}
-		});
-
-		try {
-			File file = new File("data/trigram_vocab.csv");
-			if (!file.exists()) {
-				file.createNewFile();
-			}
-			FileWriter fw = new FileWriter(file);
-			BufferedWriter bw = new BufferedWriter(fw);
-
-			int count = 1;
-			for (Trigram t : sort_trigram) {
-				t.setId_num(count);
-
-				if (t.getTF() > 5) {
-					bw.write(count + "," + t.getTF() + "," + t.getFirst() + ","
-							+ t.getSecond() + "," + t.getThird());
-					bw.write("\n");
-				}
-				count++;
 			}
 			bw.close();
 		} catch (IOException e) {
@@ -203,9 +160,9 @@ public class Generate_NGrams {
 	public static void main(String[] args) {
 		Generate_NGrams analyzer = new Generate_NGrams();
 
-		analyzer.loadDirectory("./data/1", ".json");
+		analyzer.loadDirectory("./data/train", ".json");
 		analyzer.WriteToFile();
-		System.out.println(analyzer.tf_bigram.size());
+		System.out.println(analyzer.tf_tokens.size());
 
 	}
 

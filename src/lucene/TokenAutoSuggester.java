@@ -7,13 +7,13 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.search.suggest.Lookup.LookupResult;
 import org.apache.lucene.search.suggest.analyzing.AnalyzingSuggester;
 
-import structures.Unigram;
+import structures.Token;
 
 public class TokenAutoSuggester {
 
-	private ArrayList<Unigram> dataset;
+	private ArrayList<Token> dataset;
 	
-	public TokenAutoSuggester(ArrayList<Unigram> data) {
+	public TokenAutoSuggester(ArrayList<Token> data) {
 		dataset = data;
 	}
 
@@ -35,12 +35,12 @@ public class TokenAutoSuggester {
 	}
 
 	public static void main(String args[]) {
-		
-		ArrayList<Unigram> subset = new ArrayList<Unigram>();
-		subset.add(new Unigram("ball room", 10));
-		subset.add(new Unigram("ballroom tour", 50));
-		subset.add(new Unigram("balls across the room", 20));
-		subset.add(new Unigram("balling", 30));
+		// Testing
+		ArrayList<Token> subset = new ArrayList<Token>();
+		subset.add(new Token("ball room", 10));
+		subset.add(new Token("ballroom tour", 50));
+		subset.add(new Token("balls across the room", 20));
+		subset.add(new Token("balling", 30));
 		
 
 		TokenAutoSuggester test = new TokenAutoSuggester(subset);

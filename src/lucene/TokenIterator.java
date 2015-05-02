@@ -8,18 +8,18 @@ import java.util.Set;
 import org.apache.lucene.search.suggest.InputIterator;
 import org.apache.lucene.util.BytesRef;
 
-import structures.Unigram;
+import structures.Token;
 
 public final class TokenIterator implements InputIterator {
 	
-	private Unigram current;
-	private final Iterator<Unigram> tokenIterator;
+	private Token current;
+	private final Iterator<Token> tokenIterator;
 
-	public TokenIterator(Iterator<Unigram> iterator) {
+	public TokenIterator(Iterator<Token> iterator) {
 		this.tokenIterator = iterator;
 	}
 
-	public TokenIterator(ArrayList<Unigram> list) {
+	public TokenIterator(ArrayList<Token> list) {
 		this.tokenIterator = list.iterator();
 	}
 
@@ -27,21 +27,21 @@ public final class TokenIterator implements InputIterator {
 	public BytesRef next() {
 		if (tokenIterator.hasNext()) {
 			current = tokenIterator.next();
-			return new BytesRef(current.getFirst());
+			return new BytesRef(current.getContent());
 		}
 		return null;
 	}
 
 	@Override
 	public long weight() {
-		return (long) current.getChi();
+		return (long) current.getTF();
 	}
 
 	@Override
 	public Set<BytesRef> contexts() {
 		if (tokenIterator.hasNext()) {
 			Set<BytesRef> data = new HashSet<BytesRef>();
-			data.add(new BytesRef(tokenIterator.next().getFirst()));
+			data.add(new BytesRef(tokenIterator.next().getContent()));
 			return data;
 		}
 		return null;

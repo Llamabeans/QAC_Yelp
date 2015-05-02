@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.servlet.ServletContext;
@@ -15,11 +14,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lucene.BigramAutoSuggester;
+import lucene.TokenAutoSuggester;
 
 import org.apache.lucene.search.suggest.Lookup.LookupResult;
 
 import structures.Bigram;
+import structures.Token;
 
 import com.google.gson.Gson;
 
@@ -27,7 +27,7 @@ import com.google.gson.Gson;
 public class AutoCompleteServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	private ArrayList<Bigram> bigrams = new ArrayList<Bigram>();
+	private ArrayList<Token> tokens = new ArrayList<Token>();
 
 	public AutoCompleteServlet() {
 		super();
@@ -45,14 +45,20 @@ public class AutoCompleteServlet extends HttpServlet {
 		response.setCharacterEncoding("UTF-8");
 		String query = String.valueOf(request.getParameter("input"));
 		
-		String[] tokens = query.split("\\s+");
-		String last = tokens[tokens.length-1];
+		String[] parse = query.split("\\s+");
+		String last = "";
+		if (parse.length > 1) {
+			last = parse[parse.length-2] + " " + parse[parse.length-1];
+		} else {
+			last = parse[parse.length-1];
+		}
+		
 		
 		System.out.println("Last token: " + last);
-		System.out.println("Size of token: " + tokens.length);
-		System.out.println("Size of bigrams: " + bigrams.size());
+		System.out.println("Size of query: " + parse.length);
+		System.out.println("Size of vocab: " + tokens.size());
 		
-		BigramAutoSuggester bigram_suggester = new BigramAutoSuggester(bigrams);
+		TokenAutoSuggester bigram_suggester = new TokenAutoSuggester(tokens);
 		
 		
 		// String term = request.getParameter("term");
@@ -88,7 +94,7 @@ public class AutoCompleteServlet extends HttpServlet {
 		 */
 		try {
 			InputStream is = context
-					.getResourceAsStream("/WEB-INF/bigram_vocab.txt");
+					.getResourceAsStream("/WEB-INF/trigram_vocab.txt");
 
 			if (is != null) {
 				InputStreamReader isr = new InputStreamReader(is);
@@ -96,9 +102,9 @@ public class AutoCompleteServlet extends HttpServlet {
 				String line;
 				while ((line = reader.readLine()) != null) {
 					if (!line.isEmpty()) {
-						String[] tokens = line.split("\\s+");
-						String term = tokens[1] + " " + tokens[2];
-						bigrams.add(new Bigram(term, Integer.parseInt(tokens[0])));
+						String[] parse = line.split("\\s+");
+						String term = parse[1] + " " + parse[2] + " " + parse[3];
+						tokens.add(new Token(term, Integer.parseInt(parse[0])));
 					}
 				}
 				reader.close();

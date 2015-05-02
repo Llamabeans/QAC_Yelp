@@ -16,7 +16,7 @@ public class Analyzer_NGrams extends Analyzer {
 		
 		filter = new KStemFilter(source);
 		
-		ShingleFilter bigram = new ShingleFilter(filter);
+		ShingleFilter bigram = new ShingleFilter(filter, 3, 3);
 		bigram.setOutputUnigrams(false);
 		
 		filter = bigram;
