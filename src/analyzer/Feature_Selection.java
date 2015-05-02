@@ -1,9 +1,12 @@
 package analyzer;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,7 +27,7 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import structures.Post;
 import structures.Unigram;
 
-public class Feature_Selection extends Analyzer {
+public class Feature_Selection{
 
 	List<Unigram> sort_unigram;
 
@@ -36,14 +39,34 @@ public class Feature_Selection extends Analyzer {
 	int totalReviews = 0;
 
 	public Feature_Selection() {
-		super();
-
 		sort_unigram = new ArrayList<Unigram>();
-
 		unigram_stats = new HashMap<String, Unigram>();
-
 		features = new ArrayList<String>();
 		m_reviews = new ArrayList<Post>();
+	}
+	
+	public JSONObject loadJson(String filename) {
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					new FileInputStream(filename), "UTF-8"));
+			StringBuffer buffer = new StringBuffer(1024);
+			String line;
+
+			while ((line = reader.readLine()) != null) {
+				buffer.append(line);
+			}
+			reader.close();
+
+			return new JSONObject(buffer.toString());
+		} catch (IOException e) {
+			System.err.format("[Error]Failed to open file %s!", filename);
+			e.printStackTrace();
+			return null;
+		} catch (JSONException e) {
+			System.err.format("[Error]Failed to parse json file %s!", filename);
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	// Load files from directory

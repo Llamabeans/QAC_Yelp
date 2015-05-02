@@ -25,7 +25,7 @@ import lucene.Analyzer_Unigram;
 import structures.Post;
 import structures.Unigram;
 
-public class Positive_Rank extends Analyzer {
+public class Positive_Rank {
 
 	List<Unigram> sort_unigram;
 
@@ -43,9 +43,7 @@ public class Positive_Rank extends Analyzer {
 
 	int totalReviews = 0;
 
-	public Positive_Rank() {
-		super();
-		
+	public Positive_Rank() {		
 		sort_unigram = new ArrayList<Unigram>();
 
 		unigram_pos = new HashMap<String, Unigram>();
@@ -54,6 +52,30 @@ public class Positive_Rank extends Analyzer {
 
 		features = new ArrayList<String>();
 		m_reviews = new ArrayList<Post>();
+	}
+	
+	public JSONObject loadJson(String filename) {
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					new FileInputStream(filename), "UTF-8"));
+			StringBuffer buffer = new StringBuffer(1024);
+			String line;
+
+			while ((line = reader.readLine()) != null) {
+				buffer.append(line);
+			}
+			reader.close();
+
+			return new JSONObject(buffer.toString());
+		} catch (IOException e) {
+			System.err.format("[Error]Failed to open file %s!", filename);
+			e.printStackTrace();
+			return null;
+		} catch (JSONException e) {
+			System.err.format("[Error]Failed to parse json file %s!", filename);
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	public void readFeatures() {
