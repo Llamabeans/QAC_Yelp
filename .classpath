@@ -15,10 +15,5 @@
 	<classpathentry kind="con" path="org.eclipse.jst.j2ee.internal.module.container"/>
 	<classpathentry kind="lib" path="C:/Users/Test/Google Drive/JEE Workspace/apache-opennlp-1.5.3/lib/opennlp-maxent-3.0.3.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Test/Google Drive/JEE Workspace/apache-opennlp-1.5.3/lib/opennlp-tools-1.5.3.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Test/Google Drive/QAC/lucene-5.1.0/lucene-5.1.0/analysis/common/lucene-analyzers-common-5.1.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Test/Google Drive/QAC/lucene-5.1.0/lucene-5.1.0/core/lucene-core-5.1.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Test/Google Drive/QAC/lucene-5.1.0/lucene-5.1.0/demo/lucene-demo-5.1.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Test/Google Drive/QAC/lucene-5.1.0/lucene-5.1.0/queryparser/lucene-queryparser-5.1.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Test/Google Drive/QAC/lucene-5.1.0/lucene-5.1.0/suggest/lucene-suggest-5.1.0.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

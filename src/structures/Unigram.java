@@ -108,6 +108,8 @@ public class Unigram {
 		this.docFreq = 0;
 	}
 
-	public Unigram() {
+	public Unigram(String first, double chi) {
+		this.first = first;
+		this.chi = chi;
 	}
 }

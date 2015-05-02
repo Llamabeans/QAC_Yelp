@@ -1,6 +1,6 @@
 package lucene;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -8,39 +8,40 @@ import java.util.Set;
 import org.apache.lucene.search.suggest.InputIterator;
 import org.apache.lucene.util.BytesRef;
 
-import structures.WordFreq;
+import structures.Unigram;
 
-public final class WordFreqIterator implements InputIterator {
-	private WordFreq current;
-	private final Iterator<WordFreq> wordFreqIterator;
+public final class TokenIterator implements InputIterator {
+	
+	private Unigram current;
+	private final Iterator<Unigram> tokenIterator;
 
-	public WordFreqIterator(Iterator<WordFreq> wordFreqIterator) {
-		this.wordFreqIterator = wordFreqIterator;
+	public TokenIterator(Iterator<Unigram> iterator) {
+		this.tokenIterator = iterator;
 	}
 
-	public WordFreqIterator(WordFreq[] list) {
-		this(Arrays.asList(list).iterator());
+	public TokenIterator(ArrayList<Unigram> list) {
+		this.tokenIterator = list.iterator();
 	}
 
 	@Override
 	public BytesRef next() {
-		if (wordFreqIterator.hasNext()) {
-			current = wordFreqIterator.next();
-			return current.term;
+		if (tokenIterator.hasNext()) {
+			current = tokenIterator.next();
+			return new BytesRef(current.getFirst());
 		}
 		return null;
 	}
 
 	@Override
 	public long weight() {
-		return current.count;
+		return (long) current.getChi();
 	}
 
 	@Override
 	public Set<BytesRef> contexts() {
-		if (wordFreqIterator.hasNext()) {
+		if (tokenIterator.hasNext()) {
 			Set<BytesRef> data = new HashSet<BytesRef>();
-			data.add(wordFreqIterator.next().term);
+			data.add(new BytesRef(tokenIterator.next().getFirst()));
 			return data;
 		}
 		return null;
